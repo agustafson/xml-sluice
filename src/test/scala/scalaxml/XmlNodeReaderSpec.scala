@@ -15,24 +15,29 @@ class XmlNodeReaderSpec extends Specification {
         <child role="daughter">Elsa</child>
       </parent>
     </root>
+  val multipleNodesUnderRoot =
+    <root>
+      <one/>
+      <two/>
+      <three/>
+    </root>
 
   "XmlEventToNode" should {
     "convert a flat node" in {
-      implicit val reader = createReader(simpleFlatNode)
+      val reader = new XmlNodeReader(createXMLEventReader(simpleFlatNode)) with IncludeAllElementStartEventFilter
       val node = reader.readNodes.head
       node.label === "test"
     }
 
     "convert a simple node" in {
-      implicit val reader = createReader(singleElementNode)
+      val reader = new XmlNodeReader(createXMLEventReader(singleElementNode)) with IncludeAllElementStartEventFilter
       val node = reader.readNodes.head
       node.label === "test"
       node.text === "hi"
     }
 
     "convert a single nested node" in {
-      implicit val reader = createReader(singleNested)
-
+      val reader = new XmlNodeReader(createXMLEventReader(singleNested)) with IncludeAllElementStartEventFilter
       val nodes = reader.readNodes
       val parentNode = nodes \ "parent"
       (parentNode \ "@role").text === "father"
@@ -41,9 +46,19 @@ class XmlNodeReaderSpec extends Specification {
       (childNode \ "@role").text === "daughter"
       childNode.text === "Elsa"
     }
+    
+    "read nodes at level 1 depth" in {
+      val reader = new XmlNodeReader(createXMLEventReader(multipleNodesUnderRoot)) with DepthBasedElementStartEventFilter {
+        val depth = 1
+      }
+      val nodes = reader.readNodes.toList
+      /*{ case (elem: Elem) => elem.text }*/
+      val names: Seq[String] = nodes map ((node: Node) => node.label)
+      names === Seq("one", "two", "three")
+    }
   }
 
-  def createReader(xml: Elem): XmlNodeReader = {
-    new XmlNodeReader(new XMLEventReader(Source.fromString(xml.toString)))
+  def createXMLEventReader(xml: Elem): XMLEventReader = {
+    new XMLEventReader(Source.fromString(xml.toString))
   }
 }
