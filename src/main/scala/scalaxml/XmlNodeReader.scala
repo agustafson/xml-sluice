@@ -4,7 +4,7 @@ import scala.collection.mutable.ListBuffer
 import scala.xml._
 import scala.xml.pull._
 
-class XmlNodeReader(reader: XMLEventReader) {
+class XmlNodeReader(reader: XMLEventReader) { self: ElementStartEventFilter =>
   private val parents = collection.mutable.Stack[Elem]()
   private[scalaxml] def currentDepth: Int = parents.size
 
