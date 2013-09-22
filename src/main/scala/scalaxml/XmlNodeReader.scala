@@ -5,20 +5,25 @@ import scala.xml._
 import scala.xml.pull._
 
 class XmlNodeReader(reader: XMLEventReader) {
+  private val parents = collection.mutable.Stack[Elem]()
+  private[scalaxml] def currentDepth: Int = parents.size
 
   def readNodes: Seq[Node] = {
-    def convertXmlEventsToNodes(parent: Option[Elem]): Seq[Node] = {
+    def convertXmlEventsToNodes: Seq[Node] = {
       val nodes = ListBuffer[Node]()
       while (reader.hasNext) {
         reader.next match {
           case EvElemStart(prefix, label, attrs, scope) =>
-            nodes ++= convertXmlEventsToNodes(Some(new Elem(prefix, label, attrs, scope, true)))
+            val elem = new Elem(prefix, label, attrs, scope, true)
+            parents.push(elem)
+            nodes ++= convertXmlEventsToNodes
           case EvText(text) =>
-            println(s"parent: $parent; text: $text")
+            println(s"parents: $parents; text: $text")
             nodes += Text(text)
           case EvElemEnd(prefix, label) =>
+            val parent = if (parents.isEmpty) None else Some(parents.pop())
             parent map { parentElem =>
-              println(s"parent: $parent; nodes: $nodes")
+              println(s"parents: $parents; nodes: $nodes")
               if (prefix != parentElem.prefix || label != parentElem.label)
                 throw new IllegalStateException(s"Current element ${parentElem.prefix}:${parentElem.label} had closing element $prefix:$label")
               return parentElem.copy(child = parentElem.child ++ nodes.toSeq)
@@ -27,7 +32,7 @@ class XmlNodeReader(reader: XMLEventReader) {
       }
       nodes.toSeq
     }
-    convertXmlEventsToNodes(None)
+    convertXmlEventsToNodes
   }
 
 }
