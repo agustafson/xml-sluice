@@ -12,5 +12,5 @@ trait IncludeAllElementStartEventFilter extends ElementStartEventFilter { self: 
 
 trait DepthBasedElementStartEventFilter extends ElementStartEventFilter { self: XmlNodeReader =>
   def depth: Int
-  def includeNode: (EvElemStart) => Boolean = _ => currentDepth == depth
+  def includeNode: (EvElemStart) => Boolean = _ => depth > 0
 }

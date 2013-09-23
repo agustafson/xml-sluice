@@ -4,35 +4,44 @@ import scala.collection.mutable.ListBuffer
 import scala.xml._
 import scala.xml.pull._
 
-class XmlNodeReader(reader: XMLEventReader) { self: ElementStartEventFilter =>
-  private val parents = collection.mutable.Stack[Elem]()
-  private[scalaxml] def currentDepth: Int = parents.size
+class XmlNodeReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) { self: ElementStartEventFilter =>
 
-  def readNodes: Seq[Node] = {
-    def convertXmlEventsToNodes: Seq[Node] = {
+  def readNodes: Stream[Node] = {
+    def buildElement(elem: Elem): Elem = {
       val nodes = ListBuffer[Node]()
       while (reader.hasNext) {
-        reader.next match {
-          case EvElemStart(prefix, label, attrs, scope) =>
-            val elem = new Elem(prefix, label, attrs, scope, true)
-            parents.push(elem)
-            nodes ++= convertXmlEventsToNodes
+        reader.next() match {
+          case event: EvElemStart =>
+            val child = buildElement(startEventToElem(event))
+            println(s"elem: $elem; nodes: $nodes; child: $child")
+            nodes += child
           case EvText(text) =>
-            println(s"parents: $parents; text: $text")
+            println(s"elem: $elem; nodes: $nodes; text: $text")
             nodes += Text(text)
           case EvElemEnd(prefix, label) =>
-            val parent = if (parents.isEmpty) None else Some(parents.pop())
-            parent map { parentElem =>
-              println(s"parents: $parents; nodes: $nodes")
-              if (prefix != parentElem.prefix || label != parentElem.label)
-                throw new IllegalStateException(s"Current element ${parentElem.prefix}:${parentElem.label} had closing element $prefix:$label")
-              return parentElem.copy(child = parentElem.child ++ nodes.toSeq)
-            } getOrElse { throw new IllegalStateException("Current parent is not set") }
+            println(s"END $label; elem: $elem; nodes: $nodes")
+            if (prefix != elem.prefix || label != elem.label)
+              throw new IllegalStateException(s"Current element ${elem.prefix}:${elem.label} had closing element $prefix:$label")
+            return elem.copy(child = elem.child ++ nodes.toSeq)
         }
       }
-      nodes.toSeq
+      throw new IllegalStateException(s"Found end of XML document without closing tag for ${elem.prefix}:${elem.label}")
     }
-    convertXmlEventsToNodes
+
+    if (!reader.hasNext) {
+      Stream.empty[Node]
+    } else {
+      val nextEvent = reader.next()
+      nextEvent match {
+        case event: EvElemStart =>
+          val elem = startEventToElem(event)
+          buildElement(elem) #:: readNodes
+      }
+    }
+  }
+
+  private def startEventToElem(event: EvElemStart): Elem = {
+    new Elem(event.pre, event.label, event.attrs, event.scope, minimizeEmpty)
   }
 
 }
