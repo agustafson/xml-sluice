@@ -4,6 +4,7 @@ import scala.io.Source
 import scala.xml._
 import scala.xml.pull._
 import org.specs2.mutable.Specification
+import scalaxml.filter.{IncludeAllElementStartEventFilter, DepthBasedElementStartEventFilter}
 
 class XmlNodeReaderSpec extends Specification {
   val simpleFlatNode = <test/>

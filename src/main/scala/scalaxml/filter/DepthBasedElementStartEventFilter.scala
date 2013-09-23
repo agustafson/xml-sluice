@@ -1,14 +1,7 @@
-package scalaxml
+package scalaxml.filter
 
 import scala.xml.pull._
-
-trait ElementStartEventFilter {
-  def includeNode: EvElemStart => Boolean
-}
-
-trait IncludeAllElementStartEventFilter extends ElementStartEventFilter {
-  def includeNode: (EvElemStart) => Boolean = _ => true
-}
+import scalaxml.listener.XmlEventListener
 
 trait DepthBasedElementStartEventFilter extends ElementStartEventFilter with XmlEventListener {
   def depth: Int

@@ -1,4 +1,4 @@
-package scalaxml
+package scalaxml.listener
 
 import scala.xml.pull.XMLEvent
 
