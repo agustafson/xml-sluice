@@ -52,7 +52,7 @@ class XmlNodeReaderSpec extends Specification {
       val reader = new XmlNodeReader(createXMLEventReader(multipleNodesUnderRoot)) with DepthBasedElementStartEventFilter {
         val depth = 1
       }
-      val nodes = reader.readNodes.toList
+      val nodes = reader.readNodes
       val names: Seq[String] = nodes map ((node: Node) => node.label)
       names === Seq("one", "two", "three")
     }
