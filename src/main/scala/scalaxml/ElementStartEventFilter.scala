@@ -2,15 +2,15 @@ package scalaxml
 
 import scala.xml.pull._
 
-trait ElementStartEventFilter { self: XmlNodeReader =>
+trait ElementStartEventFilter {
   def includeNode: EvElemStart => Boolean
 }
 
-trait IncludeAllElementStartEventFilter extends ElementStartEventFilter { self: XmlNodeReader =>
+trait IncludeAllElementStartEventFilter extends ElementStartEventFilter {
   def includeNode: (EvElemStart) => Boolean = _ => true
 }
 
-trait DepthBasedElementStartEventFilter extends ElementStartEventFilter with XmlEventListener { self: XmlNodeReader =>
+trait DepthBasedElementStartEventFilter extends ElementStartEventFilter with XmlEventListener {
   def depth: Int
   def includeNode: (EvElemStart) => Boolean = _ => currentDepth >= depth
 
