@@ -4,25 +4,30 @@ import scala.collection.mutable.ListBuffer
 import scala.xml._
 import scala.xml.pull._
 
-class XmlNodeReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) { self: ElementStartEventFilter =>
+class XmlNodeReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) extends XmlEventListener { self: ElementStartEventFilter =>
 
   def readNodes: Stream[Node] = {
-    def buildElement(elem: Elem): Elem = {
+    def buildElement(startEvent: EvElemStart): Elem = {
+      val elem = startEventToElem(startEvent)
       val nodes = ListBuffer[Node]()
       while (reader.hasNext) {
-        reader.next() match {
+        val event = reader.next()
+        preProcessing(event)
+        event match {
           case event: EvElemStart =>
-            val child = buildElement(startEventToElem(event))
-            println(s"elem: $elem; nodes: $nodes; child: $child")
+            val child = buildElement(event)
+            postProcessing(event, Some(child))
             nodes += child
           case EvText(text) =>
-            println(s"elem: $elem; nodes: $nodes; text: $text")
-            nodes += Text(text)
+            val child = Text(text)
+            postProcessing(event, Some(child))
+            nodes += child
           case EvElemEnd(prefix, label) =>
-            println(s"END $label; elem: $elem; nodes: $nodes")
             if (prefix != elem.prefix || label != elem.label)
               throw new IllegalStateException(s"Current element ${elem.prefix}:${elem.label} had closing element $prefix:$label")
-            return elem.copy(child = elem.child ++ nodes.toSeq)
+            val updatedElem = elem.copy(child = elem.child ++ nodes.toSeq)
+            postProcessing(event, Some(updatedElem))
+            return updatedElem
         }
       }
       throw new IllegalStateException(s"Found end of XML document without closing tag for ${elem.prefix}:${elem.label}")
@@ -32,10 +37,20 @@ class XmlNodeReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) { sel
       Stream.empty[Node]
     } else {
       val nextEvent = reader.next()
+      preProcessing(nextEvent)
       nextEvent match {
         case event: EvElemStart =>
-          val elem = startEventToElem(event)
-          buildElement(elem) #:: readNodes
+          if (includeNode(event)) {
+            val element = buildElement(event)
+            postProcessing(nextEvent, None)
+            element #:: readNodes
+          } else {
+            postProcessing(nextEvent, None)
+            readNodes
+          }
+        case _ =>
+          postProcessing(nextEvent, None)
+          readNodes
       }
     }
   }

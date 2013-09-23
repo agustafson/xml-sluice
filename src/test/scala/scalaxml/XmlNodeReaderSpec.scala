@@ -52,7 +52,6 @@ class XmlNodeReaderSpec extends Specification {
         val depth = 1
       }
       val nodes = reader.readNodes.toList
-      /*{ case (elem: Elem) => elem.text }*/
       val names: Seq[String] = nodes map ((node: Node) => node.label)
       names === Seq("one", "two", "three")
     }
