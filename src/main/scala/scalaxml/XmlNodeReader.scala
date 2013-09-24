@@ -41,15 +41,9 @@ class XmlNodeReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) exten
       val nextEvent = reader.next()
       preProcessing(nextEvent)
       nextEvent match {
-        case event: EvElemStart =>
-          if (includeNode(event)) {
-            val element = buildElement(event)
-            postProcessing(nextEvent, None)
-            element #:: readNodes
-          } else {
-            postProcessing(nextEvent, None)
-            readNodes
-          }
+        case event: EvElemStart if includeNode(event) =>
+          postProcessing(nextEvent, None)
+          buildElement(event) #:: readNodes
         case _ =>
           postProcessing(nextEvent, None)
           readNodes
