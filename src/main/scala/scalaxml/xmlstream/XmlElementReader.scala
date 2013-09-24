@@ -6,9 +6,9 @@ import scala.xml.pull._
 import scalaxml.xmlstream.filter.ElementStartEventFilter
 import scalaxml.xmlstream.listener.XmlEventListener
 
-class XmlNodeReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) extends XmlEventListener { self: ElementStartEventFilter =>
+class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) extends XmlEventListener { self: ElementStartEventFilter =>
 
-  def readNodes: Stream[Node] = {
+  def readElements: Stream[Elem] = {
     def buildElement(startEvent: EvElemStart): Elem = {
       val elem = startEventToElem(startEvent)
       val nodes = ListBuffer[Node]()
@@ -36,17 +36,17 @@ class XmlNodeReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) exten
     }
 
     if (!reader.hasNext) {
-      Stream.empty[Node]
+      Stream.empty
     } else {
       val nextEvent = reader.next()
       preProcessEvent(nextEvent)
       nextEvent match {
         case event: EvElemStart if includeNode(event) =>
           postProcessEvent(nextEvent, None)
-          buildElement(event) #:: readNodes
+          buildElement(event) #:: readElements
         case _ =>
           postProcessEvent(nextEvent, None)
-          readNodes
+          readElements
       }
     }
   }

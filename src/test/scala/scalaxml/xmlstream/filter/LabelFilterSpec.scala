@@ -1,9 +1,9 @@
 package scalaxml.xmlstream.filter
 
-import scalaxml.xmlstream.{XmlNodeReader, XmlNodeReaderCreator}
+import scalaxml.xmlstream._
 import org.specs2.mutable.Specification
 
-class LabelFilterSpec extends Specification with XmlNodeReaderCreator {
+class LabelFilterSpec extends Specification {
   val xml =
     <root>
       <parent>
@@ -16,10 +16,10 @@ class LabelFilterSpec extends Specification with XmlNodeReaderCreator {
 
   "LabelFilter" should {
     "filter nodes by their label" in {
-      val reader = new XmlNodeReader(createXMLEventReader(xml))
+      val reader = new XmlElementReader(createXMLEventReader(xml))
         with LabelFilter { val labels = Seq("name") }
 
-      val nodes = reader.readNodes.toList
+      val nodes = reader.readElements.toList
       nodes must haveSize(2)
 
       val parentNode = nodes(0)

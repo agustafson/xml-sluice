@@ -3,7 +3,7 @@ package scalaxml.xmlstream
 import scalaxml.xmlstream.filter.IncludeAllFilter
 import org.specs2.mutable.Specification
 
-class XmlNodeReaderSpec extends Specification with XmlNodeReaderCreator {
+class XmlNodeReaderSpec extends Specification {
   val simpleFlatNode = <test/>
   val singleElementNode = <test>hi</test>
   val singleNested =
@@ -16,21 +16,21 @@ class XmlNodeReaderSpec extends Specification with XmlNodeReaderCreator {
 
   "XmlEventToNode" should {
     "convert a flat node" in {
-      val reader = new XmlNodeReader(createXMLEventReader(simpleFlatNode)) with IncludeAllFilter
-      val node = reader.readNodes.head
+      val reader = new XmlElementReader(createXMLEventReader(simpleFlatNode)) with IncludeAllFilter
+      val node = reader.readElements.head
       node.label === "test"
     }
 
     "convert a simple node" in {
-      val reader = new XmlNodeReader(createXMLEventReader(singleElementNode)) with IncludeAllFilter
-      val node = reader.readNodes.head
+      val reader = new XmlElementReader(createXMLEventReader(singleElementNode)) with IncludeAllFilter
+      val node = reader.readElements.head
       node.label === "test"
       node.text === "hi"
     }
 
     "convert a single nested node" in {
-      val reader = new XmlNodeReader(createXMLEventReader(singleNested)) with IncludeAllFilter
-      val nodes = reader.readNodes
+      val reader = new XmlElementReader(createXMLEventReader(singleNested)) with IncludeAllFilter
+      val nodes = reader.readElements
       val parentNode = nodes \ "parent"
       (parentNode \ "@role").text === "father"
       (parentNode \ "name").text === "Gus"
