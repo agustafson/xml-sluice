@@ -4,7 +4,7 @@ import scala.xml.Node
 import scala.xml.pull.XMLEvent
 
 trait XmlEventListener {
-  def preProcessing: XMLEvent => Unit = _ => ()
+  def preProcessing: PartialFunction[XMLEvent, Unit] = PartialFunction.empty
 
-  def postProcessing: (XMLEvent,Option[Node]) => Unit = (_,_) => ()
+  def postProcessing: PartialFunction[(XMLEvent,Option[Node]), Unit] = PartialFunction.empty
 }

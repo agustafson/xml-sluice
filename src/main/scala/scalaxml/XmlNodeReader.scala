@@ -14,21 +14,21 @@ class XmlNodeReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) exten
       val nodes = ListBuffer[Node]()
       while (reader.hasNext) {
         val event = reader.next()
-        preProcessing(event)
+        preProcessEvent(event)
         event match {
           case event: EvElemStart =>
             val child = buildElement(event)
-            postProcessing(event, Some(child))
+            postProcessEvent(event, Some(child))
             nodes += child
           case EvText(text) =>
             val child = Text(text)
-            postProcessing(event, Some(child))
+            postProcessEvent(event, Some(child))
             nodes += child
           case EvElemEnd(prefix, label) =>
             if (prefix != elem.prefix || label != elem.label)
               throw new IllegalStateException(s"Current element ${elem.prefix}:${elem.label} had closing element $prefix:$label")
             val updatedElem = elem.copy(child = elem.child ++ nodes.toSeq)
-            postProcessing(event, Some(updatedElem))
+            postProcessEvent(event, Some(updatedElem))
             return updatedElem
         }
       }
@@ -39,16 +39,24 @@ class XmlNodeReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) exten
       Stream.empty[Node]
     } else {
       val nextEvent = reader.next()
-      preProcessing(nextEvent)
+      preProcessEvent(nextEvent)
       nextEvent match {
         case event: EvElemStart if includeNode(event) =>
-          postProcessing(nextEvent, None)
+          postProcessEvent(nextEvent, None)
           buildElement(event) #:: readNodes
         case _ =>
-          postProcessing(nextEvent, None)
+          postProcessEvent(nextEvent, None)
           readNodes
       }
     }
+  }
+  
+  private def preProcessEvent(event: XMLEvent) {
+    preProcessing.applyOrElse(event, (_:XMLEvent) => ())
+  }
+
+  private def postProcessEvent(event: XMLEvent, nodeResult: Option[Node]) {
+    postProcessing.applyOrElse((event,nodeResult), (_:(XMLEvent,Option[Node])) => ())
   }
 
   private def startEventToElem(event: EvElemStart): Elem = {

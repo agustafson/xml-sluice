@@ -11,21 +11,15 @@ trait ParentAwareListener extends XmlEventListener with DepthAwareListener {
     if (parents.isEmpty) None else Some(parents.top)
   }
 
-  override def preProcessing: (XMLEvent) => Unit = { event =>
-    super.preProcessing(event)
-    event match {
-      case EvElemEnd(_,label) =>
-        parents.pop()
-      case _ =>
-    }
+  override def preProcessing: PartialFunction[XMLEvent, Unit] = {
+    case event @ EvElemEnd(_,label) =>
+      super.preProcessing(event)
+      parents.pop()
   }
 
-  override def postProcessing: (XMLEvent, Option[Node]) => Unit = { case (event,nodeResult) =>
-    super.postProcessing(event, nodeResult)
-    event match {
-      case EvElemStart(_,label,_,_) =>
-        parents.push(label)
-      case _ =>
-    }
+  override def postProcessing: PartialFunction[(XMLEvent, Option[Node]), Unit] = {
+    case (event @ EvElemStart(_,label,_,_), nodeResult) =>
+      super.postProcessing(event, nodeResult)
+      parents.push(label)
   }
 }
