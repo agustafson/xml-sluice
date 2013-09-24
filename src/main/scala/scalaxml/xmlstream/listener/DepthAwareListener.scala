@@ -8,11 +8,13 @@ trait DepthAwareListener extends XmlEventListener {
 
   override def preProcessing: PartialFunction[XMLEvent, Unit] = {
     case event: EvElemEnd =>
+      super.preProcessing(event)
       currentDepth = currentDepth - 1
   }
 
   override def postProcessing: PartialFunction[(XMLEvent,Option[Node]), Unit] = {
-    case (event: EvElemStart,_) =>
+    case (event: EvElemStart,nodeResult) =>
+      super.postProcessing(event,nodeResult)
       currentDepth = currentDepth + 1
   }
 }

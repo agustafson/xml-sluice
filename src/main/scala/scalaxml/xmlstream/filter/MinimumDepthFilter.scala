@@ -5,5 +5,8 @@ import scalaxml.xmlstream.listener.DepthAwareListener
 
 trait MinimumDepthFilter extends ElementStartEventFilter with DepthAwareListener {
   def minimumDepth: Int
-  def includeNode: (EvElemStart) => Boolean = _ => currentDepth >= minimumDepth
+
+  abstract override def includeNode: (EvElemStart) => Boolean = { event =>
+    super.includeNode(event) && currentDepth >= minimumDepth
+  }
 }
