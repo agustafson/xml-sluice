@@ -1,7 +1,7 @@
-package scalaxml.filter
+package scalaxml.xmlstream.filter
 
 import scala.xml.Node
-import scalaxml.{XmlNodeReader, XmlNodeReaderCreator}
+import scalaxml.xmlstream.{XmlNodeReader, XmlNodeReaderCreator}
 import org.specs2.mutable.Specification
 
 class MinimumDepthFilterSpec extends Specification with XmlNodeReaderCreator {

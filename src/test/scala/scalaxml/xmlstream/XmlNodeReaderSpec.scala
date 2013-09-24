@@ -1,6 +1,6 @@
-package scalaxml
+package scalaxml.xmlstream
 
-import scalaxml.filter.IncludeAllFilter
+import scalaxml.xmlstream.filter.IncludeAllFilter
 import org.specs2.mutable.Specification
 
 class XmlNodeReaderSpec extends Specification with XmlNodeReaderCreator {

@@ -1,7 +1,7 @@
-package scalaxml.filter
+package scalaxml.xmlstream.filter
 
 import scala.xml.pull.EvElemStart
-import scalaxml.listener.ParentAwareListener
+import scalaxml.xmlstream.listener.ParentAwareListener
 
 trait ParentNameFilter extends ElementStartEventFilter with ParentAwareListener {
   def parentNames: Set[String]

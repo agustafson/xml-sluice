@@ -1,4 +1,4 @@
-package scalaxml.listener
+package scalaxml.xmlstream.listener
 
 import scala.collection.mutable
 import scala.xml.Node

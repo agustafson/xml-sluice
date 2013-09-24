@@ -1,4 +1,4 @@
-package scalaxml
+package scalaxml.xmlstream
 
 import scala.io.Source
 import scala.xml.Elem

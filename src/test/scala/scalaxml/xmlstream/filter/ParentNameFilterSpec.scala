@@ -1,6 +1,6 @@
-package scalaxml.filter
+package scalaxml.xmlstream.filter
 
-import scalaxml.{XmlNodeReader, XmlNodeReaderCreator}
+import scalaxml.xmlstream.{XmlNodeReader, XmlNodeReaderCreator}
 import org.specs2.mutable.Specification
 
 class ParentNameFilterSpec extends Specification with XmlNodeReaderCreator {

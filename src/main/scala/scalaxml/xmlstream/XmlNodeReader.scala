@@ -1,10 +1,10 @@
-package scalaxml
+package scalaxml.xmlstream
 
 import scala.collection.mutable.ListBuffer
 import scala.xml._
 import scala.xml.pull._
-import scalaxml.filter.ElementStartEventFilter
-import scalaxml.listener.XmlEventListener
+import scalaxml.xmlstream.filter.ElementStartEventFilter
+import scalaxml.xmlstream.listener.XmlEventListener
 
 class XmlNodeReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) extends XmlEventListener { self: ElementStartEventFilter =>
 

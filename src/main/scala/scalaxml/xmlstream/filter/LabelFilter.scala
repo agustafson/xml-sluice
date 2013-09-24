@@ -1,4 +1,4 @@
-package scalaxml.filter
+package scalaxml.xmlstream.filter
 
 import scala.xml.pull.EvElemStart
 
