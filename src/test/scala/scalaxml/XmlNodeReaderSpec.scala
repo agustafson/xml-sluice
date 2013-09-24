@@ -1,12 +1,9 @@
 package scalaxml
 
-import scala.io.Source
-import scala.xml._
-import scala.xml.pull._
+import scalaxml.filter.IncludeAllElementStartEventFilter
 import org.specs2.mutable.Specification
-import scalaxml.filter.{IncludeAllElementStartEventFilter, DepthBasedElementStartEventFilter}
 
-class XmlNodeReaderSpec extends Specification {
+class XmlNodeReaderSpec extends Specification with XmlNodeReaderCreator {
   val simpleFlatNode = <test/>
   val singleElementNode = <test>hi</test>
   val singleNested =
@@ -15,12 +12,6 @@ class XmlNodeReaderSpec extends Specification {
         <name>Gus</name>
         <child role="daughter">Elsa</child>
       </parent>
-    </root>
-  val multipleNodesUnderRoot =
-    <root>
-      <one/>
-      <two/>
-      <three/>
     </root>
 
   "XmlEventToNode" should {
@@ -47,18 +38,5 @@ class XmlNodeReaderSpec extends Specification {
       (childNode \ "@role").text === "daughter"
       childNode.text === "Elsa"
     }
-    
-    "read nodes at level 1 depth" in {
-      val reader = new XmlNodeReader(createXMLEventReader(multipleNodesUnderRoot)) with DepthBasedElementStartEventFilter {
-        val depth = 1
-      }
-      val nodes = reader.readNodes
-      val names: Seq[String] = nodes map ((node: Node) => node.label)
-      names === Seq("one", "two", "three")
-    }
-  }
-
-  def createXMLEventReader(xml: Elem): XMLEventReader = {
-    new XMLEventReader(Source.fromString(xml.toString))
   }
 }
