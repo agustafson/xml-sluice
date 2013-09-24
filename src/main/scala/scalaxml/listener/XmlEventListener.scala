@@ -1,9 +1,10 @@
 package scalaxml.listener
 
+import scala.xml.Node
 import scala.xml.pull.XMLEvent
 
 trait XmlEventListener {
   def preProcessing: XMLEvent => Unit = _ => ()
 
-  def postProcessing[T]: (XMLEvent,Option[T]) => Unit = (_,_) => ()
+  def postProcessing: (XMLEvent,Option[Node]) => Unit = (_,_) => ()
 }

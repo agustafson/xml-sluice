@@ -1,5 +1,6 @@
 package scalaxml.filter
 
+import scala.xml.Node
 import scala.xml.pull._
 import scalaxml.listener.XmlEventListener
 
@@ -15,7 +16,7 @@ trait MinimumDepthFilter extends ElementStartEventFilter with XmlEventListener {
     case _ =>
   }
 
-  override def postProcessing[T]: (XMLEvent,Option[T]) => Unit = {
+  override def postProcessing: (XMLEvent,Option[Node]) => Unit = {
     case (event: EvElemStart,_) =>
       currentDepth = currentDepth + 1
     case _ =>
