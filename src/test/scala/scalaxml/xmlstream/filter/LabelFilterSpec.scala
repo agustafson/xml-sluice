@@ -16,9 +16,8 @@ class LabelFilterSpec extends Specification with XmlNodeReaderCreator {
 
   "LabelFilter" should {
     "filter nodes by their label" in {
-      val reader = new XmlNodeReader(createXMLEventReader(xml)) with LabelFilter {
-        def labels: Seq[String] = Seq("name")
-      }
+      val reader = new XmlNodeReader(createXMLEventReader(xml))
+        with LabelFilter { val labels = Seq("name") }
 
       val nodes = reader.readNodes.toList
       nodes must haveSize(2)
