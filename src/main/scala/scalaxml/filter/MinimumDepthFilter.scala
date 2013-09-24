@@ -3,7 +3,7 @@ package scalaxml.filter
 import scala.xml.pull._
 import scalaxml.listener.XmlEventListener
 
-trait MinimumDepthBasedFilter extends ElementStartEventFilter with XmlEventListener {
+trait MinimumDepthFilter extends ElementStartEventFilter with XmlEventListener {
   def minimumDepth: Int
   def includeNode: (EvElemStart) => Boolean = _ => currentDepth >= minimumDepth
 
