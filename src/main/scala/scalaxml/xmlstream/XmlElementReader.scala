@@ -50,7 +50,9 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
       }
     }
   }
-  
+
+  def includeNode: (EvElemStart) => Boolean = _ => true
+
   private def preProcessEvent(event: XMLEvent) {
     preProcessing.applyOrElse(event, (_:XMLEvent) => ())
   }
