@@ -6,15 +6,23 @@ import scala.xml.pull._
 trait DepthAwareListener extends XmlEventListener {
   var currentDepth = 0
 
-  override def preProcessing: PartialFunction[XMLEvent, Unit] = {
-    case event: EvElemEnd =>
-      super.preProcessing(event)
-      currentDepth = currentDepth - 1
+  abstract override def preProcessing: XMLEvent => Unit = { event =>
+    super.preProcessing(event)
+
+    event match {
+      case endEvent: EvElemEnd =>
+        currentDepth = currentDepth - 1
+      case _ =>
+    }
   }
 
-  override def postProcessing: PartialFunction[(XMLEvent,Option[Node]), Unit] = {
-    case (event: EvElemStart,nodeResult) =>
-      super.postProcessing(event,nodeResult)
-      currentDepth = currentDepth + 1
+  abstract override def postProcessing: (XMLEvent,Option[Node]) => Unit = { case (event, nodeResult) =>
+    super.postProcessing(event, nodeResult)
+
+    event match {
+      case startEvent: EvElemStart =>
+        currentDepth = currentDepth + 1
+      case _ =>
+    }
   }
 }
