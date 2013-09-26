@@ -18,7 +18,7 @@ class MinimumDepthFilterSpec extends Specification {
         with MinimumDepthFilter { val minimumDepth = 1 }
       val nodes = reader.readElements
       val names: Seq[String] = nodes map ((node: Node) => node.label)
-      names === Seq("one", "two", "three")
+      names.toList === Seq("one", "two", "three")
     }
   }
 }
