@@ -24,6 +24,18 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
             val child = Text(text)
             postProcessing(event, Some(child))
             nodes += child
+          case EvComment(commentText) =>
+            val comment = Comment(commentText)
+            postProcessing(event, Some(comment))
+            nodes += comment
+          case EvEntityRef(entityName) =>
+            val entity = EntityRef(entityName)
+            postProcessing(event, Some(entity))
+            nodes += entity
+          case EvProcInstr(target, text) =>
+            val procInstr = ProcInstr(target, text)
+            postProcessing(event, Some(procInstr))
+            nodes += procInstr
           case EvElemEnd(prefix, label) =>
             if (prefix != elem.prefix || label != elem.label)
               throw new IllegalStateException(s"Current element ${elem.prefix}:${elem.label} had closing element $prefix:$label")
