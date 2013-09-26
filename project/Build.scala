@@ -22,6 +22,7 @@ object ApplicationBuild extends Build {
       publishTo <<= version { (v: String) =>
         Some(if (v.trim endsWith "SNAPSHOT") Resolvers.snapshots else Resolvers.releases)
       },
+      credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
       libraryDependencies += Dependencies.specs2
     )
   )
