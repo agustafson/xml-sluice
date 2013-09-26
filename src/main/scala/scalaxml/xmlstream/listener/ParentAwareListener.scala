@@ -16,7 +16,8 @@ trait ParentAwareListener extends XmlEventListener with DepthAwareListener {
 
     event match {
       case endEvent: EvElemEnd =>
-        parents.pop()
+        if (!parents.isEmpty)
+          parents.pop()
       case _ =>
     }
   }
