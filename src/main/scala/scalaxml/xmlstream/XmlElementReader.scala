@@ -9,44 +9,6 @@ import scalaxml.xmlstream.listener.XmlEventListener
 class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) extends XmlEventListener { self: ElementStartEventFilter =>
 
   def readElements: Stream[Elem] = {
-    def buildElement(startEvent: EvElemStart): Elem = {
-      val elem = startEventToElem(startEvent)
-      val nodes = ListBuffer[Node]()
-      while (reader.hasNext) {
-        val event = reader.next()
-        preProcessing(event)
-        event match {
-          case event: EvElemStart =>
-            val child = buildElement(event)
-            postProcessing(event, Some(child))
-            nodes += child
-          case EvText(text) =>
-            val child = Text(text)
-            postProcessing(event, Some(child))
-            nodes += child
-          case EvComment(commentText) =>
-            val comment = Comment(commentText)
-            postProcessing(event, Some(comment))
-            nodes += comment
-          case EvEntityRef(entityName) =>
-            val entity = EntityRef(entityName)
-            postProcessing(event, Some(entity))
-            nodes += entity
-          case EvProcInstr(target, text) =>
-            val procInstr = ProcInstr(target, text)
-            postProcessing(event, Some(procInstr))
-            nodes += procInstr
-          case EvElemEnd(prefix, label) =>
-            if (prefix != elem.prefix || label != elem.label)
-              throw new IllegalStateException(s"Current element ${elem.prefix}:${elem.label} had closing element $prefix:$label")
-            val updatedElem = elem.copy(child = elem.child ++ nodes.toSeq)
-            postProcessing(event, Some(updatedElem))
-            return updatedElem
-        }
-      }
-      throw new IllegalStateException(s"Found end of XML document without closing tag for ${elem.prefix}:${elem.label}")
-    }
-
     if (!reader.hasNext) {
       Stream.empty
     } else {
@@ -64,6 +26,51 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
   }
 
   def includeNode: (EvElemStart) => Boolean = _ => true
+
+  private def buildElement(startEvent: EvElemStart): Elem = {
+    def convertToChildNode(event: XMLEvent): Node = {
+      processEvent(event) {
+        case event: EvElemStart =>
+          buildElement(event)
+        case EvText(text) =>
+          Text(text)
+        case EvComment(commentText) =>
+          if (commentText contains "apos")
+            Text("'")
+          else
+            Comment(commentText)
+        case EvEntityRef(entityName) =>
+          EntityRef(entityName)
+        case EvProcInstr(target, text) =>
+          ProcInstr(target, text)
+      }
+    }
+
+    val elem = startEventToElem(startEvent)
+    val nodes = ListBuffer[Node]()
+    while (reader.hasNext) {
+      val event = reader.next()
+      event match {
+        case EvElemEnd(prefix, label) =>
+          val updatedElem = processEvent[Elem](event) { _ =>
+            if (prefix != elem.prefix || label != elem.label)
+              throw new IllegalStateException(s"Current element ${elem.prefix}:${elem.label} had closing element $prefix:$label")
+            elem.copy(child = elem.child ++ nodes.toSeq)
+          }
+          return updatedElem
+        case _ =>
+          nodes += convertToChildNode(event)
+      }
+    }
+    throw new IllegalStateException(s"Found end of XML document without closing tag for ${elem.prefix}:${elem.label}")
+  }
+
+  private def processEvent[N <: Node](event: XMLEvent)(eventHandler: XMLEvent => N): N = {
+    preProcessing(event)
+    val result = eventHandler(event)
+    postProcessing(event, Some(result))
+    result
+  }
 
   private def startEventToElem(event: EvElemStart): Elem = {
     new Elem(event.pre, event.label, event.attrs, event.scope, minimizeEmpty)
