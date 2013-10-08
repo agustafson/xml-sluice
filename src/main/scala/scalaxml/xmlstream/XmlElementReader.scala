@@ -14,13 +14,18 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
     } else {
       val nextEvent = reader.next()
       preProcessing(nextEvent)
-      nextEvent match {
+      val startElemEvent = nextEvent match {
         case event: EvElemStart if includeNode(event) =>
-          postProcessing(nextEvent, None)
-          buildElement(event) #:: readElements
+          Some(event)
         case _ =>
-          postProcessing(nextEvent, None)
-          readElements
+          None
+      }
+      postProcessing(nextEvent, None)
+
+      startElemEvent map { event =>
+        buildElement(event) #:: readElements
+      } getOrElse {
+        readElements
       }
     }
   }
