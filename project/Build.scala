@@ -13,11 +13,11 @@ object Resolvers {
 
 object ApplicationBuild extends Build {
   lazy val scalaxml = Project(
-    id = "scala-xml",
+    id = "xml-sluice",
     base = file("."),
     settings = Project.defaultSettings ++ releaseSettings ++ Seq(
-      organization := "scala-xml",
-      name := "xmlstream",
+      organization := "agustafson",
+      name := "xml-sluice",
       scalaVersion := "2.10.2",
       publishTo <<= version { (v: String) =>
         Some(if (v.trim endsWith "SNAPSHOT") Resolvers.snapshots else Resolvers.releases)
