@@ -1,6 +1,7 @@
 package scalaxml.xmlstream
 
-import scala.collection.mutable.ListBuffer
+import scala.annotation.tailrec
+import scala.collection.immutable.Stack
 import scala.xml._
 import scala.xml.pull._
 import scalaxml.xmlstream.filter.ElementStartEventFilter
@@ -23,7 +24,7 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
       postProcessing(nextEvent, None)
 
       startElemEvent map { event =>
-        buildElement(event) #:: readElements
+        buildElement(Stack(startEventToElem(event)), Seq.empty) #:: readElements
       } getOrElse {
         readElements
       }
@@ -32,11 +33,12 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
 
   def includeNode: (EvElemStart) => Boolean = _ => true
 
-  private def buildElement(startEvent: EvElemStart): Elem = {
+  @tailrec
+  private def buildElement(parents: Stack[Elem], nodes: Seq[Node]): Elem = {
+    def currentParent: Option[Elem] = if (parents.isEmpty) None else Some(parents.top)
+
     def convertToChildNode(event: XMLEvent): Node = {
       processEvent(event) {
-        case event: EvElemStart =>
-          buildElement(event)
         case EvText(text) =>
           Text(text)
         case EvComment(commentText) =>
@@ -51,26 +53,37 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
       }
     }
 
-    val elem = startEventToElem(startEvent)
-    val nodes = ListBuffer[Node]()
-    while (reader.hasNext) {
+    if (reader.hasNext) {
       val event = reader.next()
       event match {
+        case startEvent: EvElemStart =>
+          val (currentParent,remainingParents) = parents.pop2
+          val newParents = remainingParents.push(currentParent.copy(child = currentParent.child ++ nodes))
+          val elem = processEvent(startEvent)(startEventToElem)
+          buildElement(newParents.push(elem), Seq.empty)
         case EvElemEnd(prefix, label) =>
-          val updatedElem = processEvent[Elem](event) { _ =>
-            if (prefix != elem.prefix || label != elem.label)
-              throw new IllegalStateException(s"Current element ${elem.prefix}:${elem.label} had closing element $prefix:$label")
-            elem.copy(child = elem.child ++ nodes.toSeq)
+          val (currentParent,remainingParents) = parents.pop2
+          val updatedElem = processEvent(event) { _ =>
+            if (prefix != currentParent.prefix || label != currentParent.label)
+              throw new IllegalStateException(s"Current element ${currentParent.prefix}:${currentParent.label} had closing element $prefix:$label")
+            currentParent.copy(child = currentParent.child ++ nodes)
           }
-          return updatedElem
+          if (remainingParents.isEmpty)
+            updatedElem
+          else
+            buildElement(remainingParents, Seq(updatedElem))
         case _ =>
-          nodes += convertToChildNode(event)
+          buildElement(parents, nodes :+ convertToChildNode(event))
       }
+    } else if (parents.size == 1) {
+      parents.top
+    } else {
+      val elemDetails = currentParent map(elem => s"${elem.prefix}:${elem.label}") getOrElse "<no parent found>"
+      throw new IllegalStateException(s"Found end of XML document without closing tag for $elemDetails")
     }
-    throw new IllegalStateException(s"Found end of XML document without closing tag for ${elem.prefix}:${elem.label}")
   }
 
-  private def processEvent[N <: Node](event: XMLEvent)(eventHandler: XMLEvent => N): N = {
+  private def processEvent[N <: Node, E <: XMLEvent](event: E)(eventHandler: E => N): N = {
     preProcessing(event)
     val result = eventHandler(event)
     postProcessing(event, Some(result))
