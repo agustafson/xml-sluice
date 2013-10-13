@@ -35,8 +35,6 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
 
   @tailrec
   private def buildElement(parents: Stack[Elem], nodes: Seq[Node]): Elem = {
-    def currentParent: Option[Elem] = if (parents.isEmpty) None else Some(parents.top)
-
     def convertToChildNode(event: XMLEvent): Node = {
       processEvent(event) {
         case EvText(text) =>
@@ -53,19 +51,20 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
       }
     }
 
-    if (reader.hasNext) {
+    if (parents.isEmpty) {
+      throw new IllegalStateException("Can not build nodes without a parent")
+    } else if (reader.hasNext) {
       val event = reader.next()
+      val (currentParent,remainingParents) = parents.pop2
       event match {
         case startEvent: EvElemStart =>
-          val (currentParent,remainingParents) = parents.pop2
           val newParents = remainingParents.push(currentParent.copy(child = currentParent.child ++ nodes))
           val elem = processEvent(startEvent)(startEventToElem)
           buildElement(newParents.push(elem), Seq.empty)
+        case EvElemEnd(prefix, label) if prefix != currentParent.prefix || label != currentParent.label =>
+          throw new IllegalStateException(s"Current element ${currentParent.prefix}:${currentParent.label} had closing element $prefix:$label")
         case EvElemEnd(prefix, label) =>
-          val (currentParent,remainingParents) = parents.pop2
           val updatedElem = processEvent(event) { _ =>
-            if (prefix != currentParent.prefix || label != currentParent.label)
-              throw new IllegalStateException(s"Current element ${currentParent.prefix}:${currentParent.label} had closing element $prefix:$label")
             currentParent.copy(child = currentParent.child ++ nodes)
           }
           if (remainingParents.isEmpty)
@@ -78,8 +77,8 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
     } else if (parents.size == 1) {
       parents.top
     } else {
-      val elemDetails = currentParent map(elem => s"${elem.prefix}:${elem.label}") getOrElse "<no parent found>"
-      throw new IllegalStateException(s"Found end of XML document without closing tag for $elemDetails")
+      val currentParent = parents.top
+      throw new IllegalStateException(s"Found end of XML document without closing tag for ${currentParent.prefix}:${currentParent.label}")
     }
   }
 
