@@ -1,11 +1,11 @@
-package scalaxml.xmlstream
+package scala.xml.sluice
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Stack
 import scala.xml._
 import scala.xml.pull._
-import scalaxml.xmlstream.filter.ElementStartEventFilter
-import scalaxml.xmlstream.listener.XmlEventListener
+import scala.xml.sluice.filter.ElementStartEventFilter
+import scala.xml.sluice.listener.XmlEventListener
 
 class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) extends XmlEventListener { self: ElementStartEventFilter =>
 

@@ -1,6 +1,6 @@
-package scalaxml.xmlstream.filter
+package scala.xml.sluice.filter
 
-import scalaxml.xmlstream._
+import scala.xml.sluice._
 import org.specs2.mutable.Specification
 
 class LabelFilterSpec extends Specification {

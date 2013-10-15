@@ -1,7 +1,7 @@
-package scalaxml.xmlstream.filter
+package scala.xml.sluice.filter
 
 import scala.xml.Node
-import scalaxml.xmlstream._
+import scala.xml.sluice._
 import org.specs2.mutable.Specification
 
 class MinimumDepthFilterSpec extends Specification {

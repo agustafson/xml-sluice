@@ -1,4 +1,4 @@
-package scalaxml.xmlstream.listener
+package scala.xml.sluice.listener
 
 import scala.xml.Node
 import scala.xml.pull.XMLEvent

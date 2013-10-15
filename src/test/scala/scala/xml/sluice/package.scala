@@ -1,4 +1,4 @@
-package scalaxml.xmlstream
+package scala.xml.sluice
 
 import scala.io.Source
 import scala.xml.Elem

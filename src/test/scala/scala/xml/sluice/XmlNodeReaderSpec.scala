@@ -1,6 +1,6 @@
-package scalaxml.xmlstream
+package scala.xml.sluice
 
-import scalaxml.xmlstream.filter.{MinimumDepthFilter, IncludeAllFilter}
+import scala.xml.sluice.filter.{MinimumDepthFilter, IncludeAllFilter}
 import org.specs2.mutable.Specification
 
 class XmlNodeReaderSpec extends Specification {

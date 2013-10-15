@@ -1,7 +1,7 @@
-package scalaxml.xmlstream.filter
+package scala.xml.sluice.filter
 
 import scala.xml.pull._
-import scalaxml.xmlstream.listener.DepthAwareListener
+import scala.xml.sluice.listener.DepthAwareListener
 
 trait MinimumDepthFilter extends ElementStartEventFilter with DepthAwareListener {
   def minimumDepth: Int
