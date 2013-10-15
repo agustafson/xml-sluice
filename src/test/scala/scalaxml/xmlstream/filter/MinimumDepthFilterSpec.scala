@@ -16,7 +16,7 @@ class MinimumDepthFilterSpec extends Specification {
     "read nodes at level 1 minimumDepth" in {
       val reader = new XmlElementReader(createXMLEventReader(multipleNodesUnderRoot))
         with MinimumDepthFilter { val minimumDepth = 1 }
-      val nodes = reader.readElements
+      val nodes = reader.streamElements
       val names: Seq[String] = nodes map ((node: Node) => node.label)
       names.toList === Seq("one", "two", "three")
     }

@@ -9,7 +9,35 @@ import scalaxml.xmlstream.listener.XmlEventListener
 
 class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) extends XmlEventListener { self: ElementStartEventFilter =>
 
-  def readElements: Stream[Elem] = {
+  def readElements: Seq[Elem] = {
+    @tailrec
+    def read(results: Seq[Elem]): Seq[Elem] = {
+      if (!reader.hasNext) {
+        results
+      } else {
+        val nextEvent = reader.next()
+        preProcessing(nextEvent)
+        val builtElement = nextEvent match {
+          case event: EvElemStart if includeNode(event) =>
+            Some(buildElement(Stack(startEventToElem(event)), Seq.empty))
+          case _ =>
+            None
+        }
+        postProcessing(nextEvent, None)
+
+        val newResults = builtElement map { elem =>
+          results :+ elem
+        } getOrElse {
+          results
+        }
+        read(newResults)
+      }
+    }
+
+    read(Nil)
+  }
+
+  def streamElements: Stream[Elem] = {
     if (!reader.hasNext) {
       Stream.empty
     } else {
@@ -24,13 +52,14 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
       postProcessing(nextEvent, None)
 
       startElemEvent map { event =>
-        buildElement(Stack(startEventToElem(event)), Seq.empty) #:: readElements
+        buildElement(Stack(startEventToElem(event)), Seq.empty) #:: streamElements
       } getOrElse {
-        readElements
+        streamElements
       }
     }
   }
 
+  @inline
   def includeNode: (EvElemStart) => Boolean = _ => true
 
   @tailrec
@@ -82,6 +111,7 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
     }
   }
 
+  @inline
   private def processEvent[N <: Node, E <: XMLEvent](event: E)(eventHandler: E => N): N = {
     preProcessing(event)
     val result = eventHandler(event)
@@ -89,6 +119,7 @@ class XmlElementReader(reader: XMLEventReader, minimizeEmpty: Boolean = true) ex
     result
   }
 
+  @inline
   private def startEventToElem(event: EvElemStart): Elem = {
     new Elem(event.pre, event.label, event.attrs, event.scope, minimizeEmpty)
   }

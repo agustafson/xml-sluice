@@ -23,7 +23,7 @@ class ParentNameFilterSpec extends Specification {
     "find nodes by parent name" in {
       val reader = new XmlElementReader(createXMLEventReader(xml))
         with ParentNameFilter { val parentNames = Set("children") }
-      val nodes = reader.readElements.toList
+      val nodes = reader.streamElements.toList
       nodes must haveSize(3)
       nodes.map(_.text.trim) === Seq("child 1", "child 2", "nested 3")
     }
